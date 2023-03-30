@@ -1,0 +1,11 @@
+# Ignore Mac system files
+.DS_store
+.idea/
+
+
+# Ignore files related to API keys
+/config/.env
+
+# Ignore files related to the Alembic database migrations
+/alembic/
+alembic.ini
