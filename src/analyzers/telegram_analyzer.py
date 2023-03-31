@@ -87,7 +87,7 @@ class TelegramAnalyzer(BaseAnalyzer):
                 else:
                     metric_value = getattr(message, metric)
 
-                if metric_value >= metric_threshold and message not in top_percentile_messages:
+                if metric_value > 0 and metric_value >= metric_threshold and message not in top_percentile_messages:
                     top_percentile_messages.append(message)
 
                 # Stop adding messages when the maximum number of messages is reached
