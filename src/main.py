@@ -56,10 +56,10 @@ async def main():
         for message in messages_x_percentile:
             msg_text = f"Dialog: {dialog_id}  \nMessage ID: {message.id}"
             for metric in ['views', 'replies', 'reactions']:
-                metric_min = monthly_metric_stats[metric]['min']
-                metric_median = monthly_metric_stats[metric]['median']
-                metric_max = monthly_metric_stats[metric]['max']
-                metric_perc = monthly_metric_stats[metric]['perc']
+                metric_min = int(monthly_metric_stats[metric]['min'])
+                metric_median = int(monthly_metric_stats[metric]['median'])
+                metric_max = int(monthly_metric_stats[metric]['max'])
+                metric_perc = int(monthly_metric_stats[metric]['perc'])
                 if metric == 'reactions':
                     msg_text += f"\n{metric.capitalize()}: {sum(reaction.count for reaction in message.reactions.results)} (min = {metric_min}, med = {metric_median}, max = {metric_max}, perc = {metric_perc})"
                 elif metric == 'replies':
