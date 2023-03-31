@@ -24,6 +24,7 @@ async def main():
 
     folder_id = int(config['TELEGRAM']['FOLDER_ID'])
     summary_chat_id = int(config['TELEGRAM']['SUMMARY_CHAT_ID'])
+    percentile = int(config['TELEGRAM']['PERCENTILE'])
 
     telegram_analyzer = TelegramAnalyzer(client)
 
@@ -46,25 +47,28 @@ async def main():
             monthly_metric_stats[metric] = {
                 'min': np.min(metric_values),
                 'median': np.median(metric_values),
-                'max': np.max(metric_values)
-            }
-        messages_95_percentile = await telegram_analyzer.get_x_percentile_messages(dialog_id, 24 * 7, 85)
+                'max': np.max(metric_values),
+                'perc': np.percentile(metric_values, percentile)
 
-        for message in messages_95_percentile:
+            }
+        messages_x_percentile = await telegram_analyzer.get_x_percentile_messages(dialog_id, 24 * 7, percentile)
+
+        for message in messages_x_percentile:
             msg_text = f"Dialog: {dialog_id}  \nMessage ID: {message.id}"
             for metric in ['views', 'replies', 'reactions']:
                 metric_min = monthly_metric_stats[metric]['min']
                 metric_median = monthly_metric_stats[metric]['median']
                 metric_max = monthly_metric_stats[metric]['max']
+                metric_perc = monthly_metric_stats[metric]['perc']
                 if metric == 'reactions':
-                    msg_text += f"\n{metric.capitalize()}: {sum(reaction.count for reaction in message.reactions.results)} (min = {metric_min}, med = {metric_median}, max = {metric_max})"
+                    msg_text += f"\n{metric.capitalize()}: {sum(reaction.count for reaction in message.reactions.results)} (min = {metric_min}, med = {metric_median}, max = {metric_max}, perc = {metric_perc})"
                 elif metric == 'replies':
                     if message.replies is None:
-                        msg_text += f"\n{metric.capitalize()}: 0 (min = {metric_min}, med = {metric_median}, max = {metric_max})"
+                        msg_text += f"\n{metric.capitalize()}: 0 (min = {metric_min}, med = {metric_median}, max = {metric_max}, perc = {metric_perc})"
                     else:
-                        msg_text += f"\n{metric.capitalize()}: {message.replies.replies} (min = {metric_min}, med = {metric_median}, max = {metric_max})"
+                        msg_text += f"\n{metric.capitalize()}: {message.replies.replies} (min = {metric_min}, med = {metric_median}, max = {metric_max}, perc = {metric_perc})"
                 else:
-                    msg_text += f"\n{metric.capitalize()}: {getattr(message, metric)} (min = {metric_min}, med = {metric_median}, max = {metric_max})"
+                    msg_text += f"\n{metric.capitalize()}: {getattr(message, metric)} (min = {metric_min}, med = {metric_median}, max = {metric_max}, perc = {metric_perc})"
             if await telegram_analyzer.check_if_forwarded(message.id, dialog_id, summary_chat_id):
                 continue
 
