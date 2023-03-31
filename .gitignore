@@ -9,3 +9,9 @@
 # Ignore files related to the Alembic database migrations
 /alembic/
 alembic.ini
+
+# Ignore files related to the Telegram session
+**/*.session
+
+# Ignore temp py files
+temp.py

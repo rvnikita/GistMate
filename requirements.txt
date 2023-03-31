@@ -1,0 +1,6 @@
+sqlalchemy
+telethon
+requests
+psycopg2
+numpy
+pytz
