@@ -46,9 +46,15 @@ class TelegramAnalyzer(BaseAnalyzer):
         # Get the dialog entity. We may need to call get_dialogs() first to get the entity.
         try:
             dialog = await self.client.get_entity(dialog_id)
-        except:
+        except ValueError as e:
             await self.client.get_dialogs(limit=1000)
-            dialog = await self.client.get_entity(dialog_id)
+
+            #TODO:MED: Strange behaivour. Sometimes it doesn't find even after get_dialogs() without limit. Need to investigate
+            try:
+                dialog = await self.client.get_entity(dialog_id)
+            except ValueError as e:
+                print(f"Unable to get dialog entity for {dialog_id}")
+                return []
 
         result = []
         async for message in self.client.iter_messages(dialog, offset_date=offset_date, reverse=True):
@@ -81,11 +87,86 @@ class TelegramAnalyzer(BaseAnalyzer):
             metric_threshold = np.percentile([getattr(s, metric) for s in filtered_messages if getattr(s, metric) is not None],
                                              percentile)
 
+            if int(metric_threshold) == 0:
+                continue
+
             for message in filtered_messages:
                 if getattr(message, metric) is None:
                     metric_value = 0
                 else:
                     metric_value = getattr(message, metric)
+
+                if metric_value > 0 and metric_value >= metric_threshold and message not in top_percentile_messages:
+                    top_percentile_messages.append(message)
+
+                # Stop adding messages when the maximum number of messages is reached
+                if len(top_percentile_messages) >= max_messages:
+                    break
+
+            # Stop iterating through metrics when the maximum number of messages is reached
+            if len(top_percentile_messages) >= max_messages:
+                break
+
+        return top_percentile_messages
+
+    async def get_y_percentile_messages(self, dialog_id, statistics_window, selection_window, percentile):
+        """
+        Get the best messages in a dialog based on collected statistics.
+        :param dialog_id: ID of the dialog to get the best messages from.
+        :param statistics_window: Number of hours into the past to consider when collecting statistics for min, max, and percentile.
+        :param selection_window: Number of hours into the past to consider when selecting messages based on the statistics.
+        :param percentile: The percentile threshold to use when determining if a message is interesting.
+        :return: List of the best messages in the dialog.
+        """
+
+        all_messages = await self.get_dialog_messages(dialog_id, statistics_window)
+        filtered_messages = [msg for msg in all_messages if
+                             msg.date > datetime.now(pytz.utc) - timedelta(hours=selection_window)]
+
+        num_messages = len(filtered_messages)
+
+        # Calculate the maximum number of messages to return based on the percentile
+        max_messages = int(num_messages * (100 - percentile) / 100)
+
+        top_percentile_messages = []
+
+        #TODO:HIGH: Probably we need to rewrite this somehow to have function how to get each metric separately, because they are stored in different ways in message object
+        for metric in ['views', 'replies', 'reactions']:
+            #TODO:MED: Should we optimize this by only calculating the percentile once for each metric and hash the results?
+            try:
+                if metric == 'replies':
+                    metric_values_list = [getattr(s, metric).replies for s in all_messages if getattr(s, metric) is not None]
+                elif metric == 'reactions':
+                    metric_values_list = [len(getattr(s, metric).results) for s in all_messages if getattr(s, metric) is not None]
+                else:
+                    metric_values_list = [getattr(s, metric) for s in all_messages if getattr(s, metric) is not None]
+            except ValueError as e:
+                metric_threshold = 0
+
+            if len(metric_values_list) == 0:
+                continue
+            else:
+                metric_threshold = np.percentile(metric_values_list, percentile)
+
+            if int(metric_threshold) == 0:
+                continue
+
+            for message in filtered_messages:
+                if metric == 'replies':
+                    if getattr(message, metric) is None:
+                        metric_value = 0
+                    else:
+                        metric_value = getattr(message, metric).replies
+                elif metric == 'reactions':
+                    if getattr(message, metric) is None:
+                        metric_value = 0
+                    else:
+                        metric_value = len(getattr(message, metric).results)
+                else:
+                    if getattr(message, metric) is None:
+                        metric_value = 0
+                    else:
+                        metric_value = getattr(message, metric)
 
                 if metric_value > 0 and metric_value >= metric_threshold and message not in top_percentile_messages:
                     top_percentile_messages.append(message)
