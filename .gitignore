@@ -12,6 +12,7 @@ alembic.ini
 
 # Ignore files related to the Telegram session
 **/*.session
+**/*.session-journal
 
 # Ignore temp py files
 temp.py
