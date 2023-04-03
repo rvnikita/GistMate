@@ -51,7 +51,7 @@ async def main():
                 'perc': np.percentile(metric_values, percentile)
 
             }
-        messages_x_percentile = await telegram_analyzer.get_x_percentile_messages(dialog_id, 24 * 7, percentile)
+        messages_x_percentile = await telegram_analyzer.get_x_percentile_messages(dialog_id, config['MAIN']['HOURS_TO_ANALYZE'], percentile)
 
         for message in messages_x_percentile:
             msg_text = f"Dialog: {dialog_id}  \nMessage ID: {message.id}"
