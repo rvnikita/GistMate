@@ -100,6 +100,8 @@ async def main():
         #     await client.send_message(summary_chat_id, msg_text)
         #     await client.forward_messages(summary_chat_id, message.id, dialog_id)
 
+    await client.disconnect()
+
 
 if __name__ == '__main__':
     import asyncio
