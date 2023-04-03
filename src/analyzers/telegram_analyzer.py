@@ -137,7 +137,7 @@ class TelegramAnalyzer(BaseAnalyzer):
                 if metric == 'replies':
                     metric_values_list = [getattr(s, metric).replies for s in all_messages if getattr(s, metric) is not None]
                 elif metric == 'reactions':
-                    metric_values_list = [len(getattr(s, metric).results) for s in all_messages if getattr(s, metric) is not None]
+                    metric_values_list = [sum(r.count for r in s.reactions.results) for s in all_messages if hasattr(s, 'reactions') and s.reactions is not None]
                 else:
                     metric_values_list = [getattr(s, metric) for s in all_messages if getattr(s, metric) is not None]
             except ValueError as e:
@@ -161,7 +161,7 @@ class TelegramAnalyzer(BaseAnalyzer):
                     if getattr(message, metric) is None:
                         metric_value = 0
                     else:
-                        metric_value = len(getattr(message, metric).results)
+                        metric_value = sum(r.count for r in message.reactions.results)
                 else:
                     if getattr(message, metric) is None:
                         metric_value = 0
