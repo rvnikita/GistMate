@@ -63,14 +63,20 @@ async def main():
                 metric_max = int(monthly_metric_stats[metric]['max'])
                 metric_perc = int(monthly_metric_stats[metric]['perc'])
                 if metric == 'reactions':
-                    msg_text += f"\n{metric.capitalize()}: {sum(reaction.count for reaction in message.reactions.results)} (min = {metric_min}, med = {metric_median}, max = {metric_max}, perc = {metric_perc})"
+                    if message.reactions is None:
+                        msg_text += f"\n{metric.capitalize()}: 0 (min = {metric_min}, med = {metric_median}, max = {metric_max}, perc = {metric_perc})"
+                    else:
+                        msg_text += f"\n{metric.capitalize()}: {sum(reaction.count for reaction in message.reactions.results)} (min = {metric_min}, med = {metric_median}, max = {metric_max}, perc = {metric_perc})"
                 elif metric == 'replies':
                     if message.replies is None:
                         msg_text += f"\n{metric.capitalize()}: 0 (min = {metric_min}, med = {metric_median}, max = {metric_max}, perc = {metric_perc})"
                     else:
                         msg_text += f"\n{metric.capitalize()}: {message.replies.replies} (min = {metric_min}, med = {metric_median}, max = {metric_max}, perc = {metric_perc})"
                 else:
-                    msg_text += f"\n{metric.capitalize()}: {getattr(message, metric)} (min = {metric_min}, med = {metric_median}, max = {metric_max}, perc = {metric_perc})"
+                    if message.views is None:
+                        msg_text += f"\n{metric.capitalize()}: 0 (min = {metric_min}, med = {metric_median}, max = {metric_max}, perc = {metric_perc})"
+                    else:
+                        msg_text += f"\n{metric.capitalize()}: {getattr(message, metric)} (min = {metric_min}, med = {metric_median}, max = {metric_max}, perc = {metric_perc})"
             if await telegram_analyzer.check_if_forwarded(message.id, dialog_id, summary_chat_id):
                 continue
 
