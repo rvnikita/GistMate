@@ -43,14 +43,21 @@ async def main():
             elif metric == 'reactions':
                 metric_values = [sum(reaction.count for reaction in msg.reactions.results) if msg.reactions else 0 for msg in last_month_messages]
 
+            if metric_values == []:
+                monthly_metric_stats[metric] = {
+                    'min': 0,
+                    'median': 0,
+                    'max': 0,
+                    'perc': 0
+                }
+            else:
+                monthly_metric_stats[metric] = {
+                    'min': np.min(metric_values),
+                    'median': np.median(metric_values),
+                    'max': np.max(metric_values),
+                    'perc': np.percentile(metric_values, percentile)
 
-            monthly_metric_stats[metric] = {
-                'min': np.min(metric_values),
-                'median': np.median(metric_values),
-                'max': np.max(metric_values),
-                'perc': np.percentile(metric_values, percentile)
-
-            }
+                }
         # messages_x_percentile = await telegram_analyzer.get_x_percentile_messages(dialog_id, int(config['MAIN']['HOURS_TO_ANALYZE']), percentile)
 
         messages_y_percentile = await telegram_analyzer.get_y_percentile_messages(dialog_id, 24*30, int(config['MAIN']['HOURS_TO_ANALYZE']), percentile)

@@ -47,9 +47,8 @@ class TelegramAnalyzer(BaseAnalyzer):
         try:
             dialog = await self.client.get_entity(dialog_id)
         except ValueError as e:
-            await self.client.get_dialogs(limit=1000)
+            await self.client.get_dialogs()
 
-            #TODO:MED: Strange behaivour. Sometimes it doesn't find even after get_dialogs() without limit. Need to investigate
             try:
                 dialog = await self.client.get_entity(dialog_id)
             except ValueError as e:
