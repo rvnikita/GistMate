@@ -46,12 +46,12 @@ class TelegramAnalyzer(BaseAnalyzer):
         # Get the dialog entity. We may need to call get_dialogs() first to get the entity.
         try:
             dialog = await self.client.get_entity(dialog_id)
-        except ValueError as e:
+        except:
             await self.client.get_dialogs()
 
             try:
                 dialog = await self.client.get_entity(dialog_id)
-            except ValueError as e:
+            except:
                 print(f"Unable to get dialog entity for {dialog_id}")
                 return []
 

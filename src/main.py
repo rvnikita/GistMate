@@ -5,6 +5,7 @@ from src.analyzers.telegram_analyzer import TelegramAnalyzer
 import os
 import configparser
 import numpy as np
+import datetime
 from telethon import TelegramClient
 from telethon.sessions import StringSession
 from sqlalchemy import create_engine
@@ -89,6 +90,7 @@ async def main():
 
             await client.send_message(summary_chat_id, msg_text)
             await client.forward_messages(summary_chat_id, message.id, dialog_id)
+            await client.send_message(summary_chat_id, '---', schedule=datetime.now() + datetime.timedelta(seconds=10))
 
 
         # for message in messages_x_percentile:
