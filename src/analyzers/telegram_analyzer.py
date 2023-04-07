@@ -62,52 +62,6 @@ class TelegramAnalyzer(BaseAnalyzer):
 
         return result
 
-
-    async def get_x_percentile_messages(self, dialog_id, history_hours, percentile):
-        """
-        Get the best messages in a dialog based on collected statistics.
-        :param dialog_id: ID of the dialog to get the best messages from.
-        :param history_hours: Number of hours into the past to consider when collecting statistics.
-        :param percentile: The percentile threshold to use when determining if a message is interesting.
-        :return: List of the best messages in the dialog.
-        """
-        last_month_statistics = await self.get_dialog_messages(dialog_id, 30 * 24)
-
-        filtered_messages = [msg for msg in last_month_statistics if
-                             msg.date > datetime.now(pytz.utc) - timedelta(hours=history_hours)]
-        num_messages = len(filtered_messages)
-
-        # Calculate the maximum number of messages to return based on the percentile
-        max_messages = int(num_messages * (100 - percentile) / 100)
-
-        top_percentile_messages = []
-
-        for metric in ['views', 'replies', 'reactions']:
-            metric_threshold = np.percentile([getattr(s, metric) for s in filtered_messages if getattr(s, metric) is not None],
-                                             percentile)
-
-            if int(metric_threshold) == 0:
-                continue
-
-            for message in filtered_messages:
-                if getattr(message, metric) is None:
-                    metric_value = 0
-                else:
-                    metric_value = getattr(message, metric)
-
-                if metric_value > 0 and metric_value >= metric_threshold and message not in top_percentile_messages:
-                    top_percentile_messages.append(message)
-
-                # Stop adding messages when the maximum number of messages is reached
-                if len(top_percentile_messages) >= max_messages:
-                    break
-
-            # Stop iterating through metrics when the maximum number of messages is reached
-            if len(top_percentile_messages) >= max_messages:
-                break
-
-        return top_percentile_messages
-
     async def get_y_percentile_messages(self, dialog_id, statistics_window, selection_window, percentile):
         """
         Get the best messages in a dialog based on collected statistics.
@@ -180,7 +134,12 @@ class TelegramAnalyzer(BaseAnalyzer):
 
         return top_percentile_messages
 
-    async def check_if_forwarded(self, message_id, chat_id, summary_chat_id):
+    async def check_if_forwarded(self, message, chat_id, summary_chat_id):
+        if message.fwd_from is not None: #so the original message is forwarded itself
+            message_id = message.fwd_from.from_id.channel_id
+        else:
+            message_id = message.id
+
         #TODO: Maybe we need to take not all messages, but only the last 1000-2000
         async for msg in self.client.iter_messages(summary_chat_id):
             if msg.fwd_from and msg.fwd_from.from_id.channel_id == chat_id and msg.fwd_from.channel_post == message_id:
