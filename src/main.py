@@ -86,7 +86,7 @@ async def main():
                         msg_text += f"\n{metric.capitalize()}: 0 (min = {metric_min}, med = {metric_median}, max = {metric_max}, perc = {metric_perc})"
                     else:
                         msg_text += f"\n{metric.capitalize()}: {getattr(message, metric)} (min = {metric_min}, med = {metric_median}, max = {metric_max}, perc = {metric_perc})"
-            if await telegram_analyzer.check_if_forwarded(message, dialog_id, summary_chat_id):
+            if await telegram_analyzer.check_if_forwarded(message, summary_chat_id):
                 continue
 
             await client.send_message(summary_chat_id, msg_text)

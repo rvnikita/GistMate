@@ -134,13 +134,16 @@ class TelegramAnalyzer(BaseAnalyzer):
 
         return top_percentile_messages
 
-    async def check_if_forwarded(self, message, chat_id, summary_chat_id):
-        if message.fwd_from is not None: #so the original message is forwarded itself
-            message_id = message.fwd_from.from_id.channel_id
+    async def check_if_forwarded(self, message, summary_chat_id):
+        if message.fwd_from is not None: #so the original message is forwarded itself, so we need to compare ids with original message
+            chat_id = message.fwd_from.from_id.channel_id
+            message_id = message.fwd_from.channel_post
         else:
+            chat_id = message.chat.id
             message_id = message.id
 
-        #TODO: Maybe we need to take not all messages, but only the last 1000-2000
+
+        #TODO: Maybe we need to take not all messages, but only the last 1000-2000 or X days
         async for msg in self.client.iter_messages(summary_chat_id):
             if msg.fwd_from and msg.fwd_from.from_id.channel_id == chat_id and msg.fwd_from.channel_post == message_id:
                 return True
