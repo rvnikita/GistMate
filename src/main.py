@@ -91,7 +91,7 @@ async def main():
 
             await client.send_message(summary_chat_id, msg_text)
             await client.forward_messages(summary_chat_id, message.id, dialog_id)
-            await client.send_message(summary_chat_id, '----------------------------------', schedule=datetime.now(pytz.utc) + timedelta(seconds=12))
+            # await client.send_message(summary_chat_id, '----------------------------------', schedule=datetime.now(pytz.utc) + timedelta(seconds=12))
 
 
         # for message in messages_x_percentile:
